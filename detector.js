@@ -140,7 +140,17 @@ function analyzeEmail(input) {
   
     // Clamp and level
     score = clamp(score, 0, 100);
-    const level = scoreToLevel(score);
+    let level = scoreToLevel(score);
+
+    // Trusted sender: if From is in user list, reduce score (still show indicators)
+    const trustedSenders = (input?.userTrustedSenders || []).map((e) => String(e).trim().toLowerCase()).filter(Boolean);
+    const fromEmail = (from.match(/<([^>]+)>/) || [null, from])[1];
+    const fromNormalized = (fromEmail || from).trim().toLowerCase();
+    if (trustedSenders.length && fromNormalized && trustedSenders.includes(fromNormalized)) {
+      score = Math.max(0, score - 25);
+      level = scoreToLevel(score);
+      reasons.unshift("From trusted sender (score reduced)");
+    }
   
     // Keep reasons 3–6 ideally; in hackathon MVP we cap at 6
     const finalReasons = dedupe(reasons).slice(0, 6);
