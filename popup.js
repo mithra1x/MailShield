@@ -11,6 +11,8 @@ const gaugeSectionEl = document.getElementById("gaugeSection");
 const gaugeProgressEl = document.getElementById("gaugeProgress");
 const gaugeScoreEl = document.getElementById("gaugeScore");
 const gaugeBadgeEl = document.getElementById("gaugeBadge");
+const riskBarContainerEl = document.getElementById("risk-bar-container");
+const riskBarFillEl = document.getElementById("risk-bar-fill");
 
 let lastScan = null;
 
@@ -76,12 +78,15 @@ copyBtn.addEventListener("click", async () => {
 function render(data, result) {
   resultEl.classList.remove("hidden");
 
-  // Risk score gauge (above reasons list)
-  renderGauge(result.score, result.level);
+  // Risk score gauge (above reasons list); hide if no score data
+  renderGauge(result?.score, result?.level);
+
+  // Risk bar (directly below gauge/score row)
+  renderRiskBar(result?.score, result?.level);
 
   // Reasons
   reasonsEl.innerHTML = "";
-  const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+  const reasons = Array.isArray(result?.reasons) ? result.reasons : [];
   for (const r of reasons) {
     const li = document.createElement("li");
     li.textContent = r;
@@ -90,7 +95,7 @@ function render(data, result) {
 
   // Links
   linksEl.innerHTML = "";
-  const sus = Array.isArray(result.suspiciousLinks) ? result.suspiciousLinks : [];
+  const sus = Array.isArray(result?.suspiciousLinks) ? result.suspiciousLinks : [];
   if (sus.length === 0) {
     const li = document.createElement("li");
     li.textContent = "None detected.";
@@ -109,13 +114,13 @@ function render(data, result) {
 function buildReport(data, result) {
   const lines = [];
   lines.push("=== Phishing Mail Detector Report ===");
-  lines.push(`Risk: ${result.level} (${result.score}/100)`);
+  lines.push(`Risk: ${result?.level ?? "—"} (${result?.score ?? 0}/100)`);
   lines.push("");
   lines.push("Indicators:");
-  for (const r of (result.reasons || [])) lines.push(`- ${r}`);
+  for (const r of (result?.reasons || [])) lines.push(`- ${r}`);
   lines.push("");
   lines.push("Suspicious URLs:");
-  const urls = (result.suspiciousLinks || []).map((x) => x.href);
+  const urls = (result?.suspiciousLinks || []).map((x) => x.href);
   if (urls.length === 0) lines.push("- None");
   else for (const u of urls) lines.push(`- ${u}`);
   lines.push("");
@@ -180,6 +185,29 @@ function renderGauge(score, level) {
   });
 }
 
+/**
+ * Renders the horizontal risk bar: fill width from score, color from level.
+ * Called from render() when result card is shown; hide is done in hideResult().
+ * Score missing → 0%; level unknown → neutral color. Smooth 0.4s animation.
+ * @param {number} [score] - 0–100; missing → 0
+ * @param {string} [level] - "Low" | "Medium" | "High"; unknown → neutral
+ */
+function renderRiskBar(score, level) {
+  if (!riskBarContainerEl || !riskBarFillEl) return;
+
+  const value = Math.max(0, Math.min(100, Number(score) || 0));
+  const levelNorm = (level && ["Low", "Medium", "High"].includes(level)) ? level : null;
+
+  riskBarContainerEl.classList.remove("hidden");
+  riskBarFillEl.style.width = `${value}%`;
+
+  riskBarFillEl.classList.remove("risk-low", "risk-medium", "risk-high", "risk-neutral");
+  if (levelNorm === "Low") riskBarFillEl.classList.add("risk-low");
+  else if (levelNorm === "Medium") riskBarFillEl.classList.add("risk-medium");
+  else if (levelNorm === "High") riskBarFillEl.classList.add("risk-high");
+  else riskBarFillEl.classList.add("risk-neutral");
+}
+
 function setStatus(text) {
   if (!text) {
     statusEl.classList.add("hidden");
@@ -193,4 +221,5 @@ function setStatus(text) {
 function hideResult() {
   resultEl.classList.add("hidden");
   copyBtn.disabled = true;
+  if (riskBarContainerEl) riskBarContainerEl.classList.add("hidden");
 }
