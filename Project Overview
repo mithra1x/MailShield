@@ -1,0 +1,65 @@
+# Phishing Mail Detector (MailShield) — Project Overview for Jury
+
+## The Idea
+
+**MailShield** is a browser extension that helps users spot phishing emails directly inside Gmail. When you open an email, the extension analyzes its content and links, assigns a risk score (Low / Medium / High), explains why it might be suspicious, and highlights dangerous links in the message. Users can copy a short SOC-style report (subject, sender, risk, reasons, suspicious URLs) to share with security teams or for their own records.
+
+The product is designed as a **lightweight, privacy-friendly** tool: all analysis runs in the browser; no email content is sent to external servers.
+
+---
+
+## The Problem We Solve
+
+- **Phishing is one of the top causes of security incidents.** Many people struggle to tell legitimate emails from fake ones, especially when senders imitate brands (e.g. PayPal, banks) or use urgency (“Verify your account in 24 hours”).
+- **Users lack simple, at-a-glance feedback.** Without opening links or reading headers, it’s hard to know if an email is safe. Security teams also need quick, structured reports to triage and investigate.
+- **Existing solutions are often heavy or not integrated.** Enterprise filters run on the server; users don’t see *why* something was flagged. MailShield runs where the user reads mail (Gmail) and explains the risk in plain language.
+
+We address this by:
+
+1. **Real-time risk assessment** — Score and level (Low/Medium/High) as soon as the user opens an email or clicks “Scan”.
+2. **Transparent “Why suspicious?”** — Clear reasons (urgency, credential requests, non-HTTPS links, lookalike domains, etc.) so users learn what to look for.
+3. **Link-level visibility** — Suspicious URLs are highlighted in the body and listed in the report, with the *actual* link target shown (not just the visible text).
+4. **SOC-ready report** — One-click copy of a short report (risk, score, reasons, URLs, From/Reply-To, date) for sharing or ticketing.
+5. **Trusted senders and domains** — Users can mark trusted email addresses and link domains so newsletters and known senders don’t trigger false alarms.
+
+---
+
+## Technical Details
+
+### Platform and stack
+
+- **Chrome extension (Manifest V3)** — Runs in the user’s browser; installable from the Chrome Web Store or as an unpacked extension.
+- **Gmail-only (MVP)** — Content scripts and UI target Gmail’s web interface (`mail.google.com`). No backend server; all logic runs client-side.
+
+### Architecture (high level)
+
+- **Popup (UI)** — User clicks the extension icon to open a small panel: “Scan current email,” risk level, score, “Why suspicious?,” list of suspicious URLs, and “Copy report.” An “Options” link opens the extension’s options page.
+- **Options page** — User can enable “Scan when I open an email” (auto-scan), add **trusted sender addresses** (full emails; messages from these get a score reduction), and **trusted link domains** (links to these domains are not flagged as suspicious).
+- **Content script (Gmail tab)** — Injected into Gmail. Extracts the opened email’s subject, body text, links (href + visible text), and when possible From, Reply-To, and date from the DOM. Sends this to the detector and, after scoring, highlights suspicious links in the message. Can run on demand (when the user clicks “Scan”) or automatically when the user opens an email (if auto-scan is on).
+- **Detector (rule-based engine)** — Pure logic: no network calls. Takes subject, body, links, From, Reply-To, and optional trusted lists. Applies rules (urgency phrases, credential/OTP wording, attachment bait, link checks such as HTTP vs HTTPS, shorteners, IP URLs, domain mismatch, lookalike domains, From vs Reply-To mismatch, disposable senders). Outputs a numeric score (0–100), level (Low/Medium/High), list of reasons, and list of suspicious links with reasons. Trusted link domains skip link scoring; trusted senders get a score reduction.
+- **Background service worker** — Listens for auto-scan results and updates the extension icon badge (e.g. H/M/L with color) so the user sees risk at a glance without opening the popup.
+- **Storage** — Uses Chrome’s `storage.sync` for options (auto-scan on/off, trusted senders, trusted domains) so settings can sync across the user’s Chrome profile.
+
+### Detection rules (summary)
+
+- **Text:** Urgency/pressure phrases; credential/OTP/login requests; attachment-bait phrases.
+- **Links (per link):** Non-HTTPS (http); URL shorteners; IP-based hosts; dangerous schemes (e.g. javascript/data); domain mismatch (visible text vs actual href); simple lookalike/typosquat checks. Links to trusted domains (built-in or user-added) are excluded from scoring.
+- **Global:** Many distinct untrusted link domains (e.g. 5+); From vs Reply-To domain mismatch; disposable sender + urgency/credential wording.
+- **Trusted sender:** If From is in the user’s trusted list, the final score is reduced (e.g. by 25 points) and the level recomputed; a note “From trusted sender (score reduced)” is added.
+
+### Data and privacy
+
+- All processing is **local**: no email content or links are sent to any external API or server. Only Chrome’s built-in storage and extension APIs are used.
+- The extension only runs on `https://mail.google.com/*` and only has access to the page when the user is on Gmail.
+
+### Limitations (MVP)
+
+- Built for **Gmail’s web UI**; other mail clients (Outlook, Yahoo, native apps) are not supported in this version.
+- Gmail’s DOM changes over time; From/Reply-To/date extraction may need maintenance.
+- Detection is **rule-based** (no ML); advanced threats (e.g. very subtle wording or images) may not be caught. The goal is to catch common phishing patterns and educate users.
+
+---
+
+## Summary for the Jury
+
+MailShield is a **Chrome extension** that brings **transparent, real-time phishing detection** into Gmail: it scores each opened email, explains why it might be suspicious, highlights risky links, and lets users copy a short **SOC-style report**. It solves the problem of **opaque or absent feedback** at the moment users read mail, with a **privacy-first**, **no-backend** design. Technical implementation uses **Manifest V3**, **content scripts** for extraction and highlighting, a **rule-based detector** for scoring, **options and sync storage** for trusted senders/domains and auto-scan, and a **background worker** for the risk badge on the icon.
