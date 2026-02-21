@@ -4,6 +4,12 @@
     --text: #e9eefc;
     --muted: #a9b4d0;
     --line: rgba(255,255,255,0.12);
+    /* Gauge colors by level */
+    --gauge-low: #22c55e;
+    --gauge-medium: #f97316;
+    --gauge-high: #ef4444;
+    --gauge-track: rgba(255,255,255,0.1);
+    --gauge-shadow: 0 2px 12px rgba(0,0,0,0.3);
   }
   
   * { box-sizing: border-box; }
@@ -53,6 +59,66 @@
   }
   
   .hidden { display: none; }
+
+  /* --- Risk Score Gauge --- */
+  .gauge-section {
+    margin-bottom: 4px;
+  }
+  .gauge-section.hidden {
+    display: none;
+  }
+  .gauge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .gauge-ring-wrap {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+  }
+  .gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* 0 at top */
+    filter: drop-shadow(var(--gauge-shadow));
+  }
+  .gauge-bg {
+    fill: none;
+    stroke: var(--gauge-track);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .gauge-progress {
+    fill: none;
+    stroke: var(--gauge-color, var(--gauge-low));
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: var(--gauge-circumference, 0);
+    stroke-dashoffset: var(--gauge-dashoffset, var(--gauge-circumference));
+    transition: stroke-dashoffset 400ms ease-out, stroke 200ms ease-out;
+  }
+  .gauge-score {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .gauge-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--gauge-badge-bg, var(--gauge-low));
+    color: #0b1220;
+  }
+
   .row {
     display: flex;
     justify-content: space-between;

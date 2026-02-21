@@ -3,12 +3,14 @@
 const scanBtn = document.getElementById("scanBtn");
 const statusEl = document.getElementById("status");
 const resultEl = document.getElementById("result");
-const riskLevelEl = document.getElementById("riskLevel");
-const riskScoreEl = document.getElementById("riskScore");
 const reasonsEl = document.getElementById("reasons");
 const linksEl = document.getElementById("links");
 const copyBtn = document.getElementById("copyBtn");
 const optionsLink = document.getElementById("optionsLink");
+const gaugeSectionEl = document.getElementById("gaugeSection");
+const gaugeProgressEl = document.getElementById("gaugeProgress");
+const gaugeScoreEl = document.getElementById("gaugeScore");
+const gaugeBadgeEl = document.getElementById("gaugeBadge");
 
 let lastScan = null;
 
@@ -74,8 +76,8 @@ copyBtn.addEventListener("click", async () => {
 function render(data, result) {
   resultEl.classList.remove("hidden");
 
-  riskLevelEl.textContent = result.level;
-  riskScoreEl.textContent = String(result.score);
+  // Risk score gauge (above reasons list)
+  renderGauge(result.score, result.level);
 
   // Reasons
   reasonsEl.innerHTML = "";
@@ -123,6 +125,59 @@ function buildReport(data, result) {
   if (data.replyTo) lines.push(`Reply-To: ${data.replyTo}`);
   if (data.date) lines.push(`Date: ${data.date}`);
   return lines.join("\n");
+}
+
+/**
+ * Renders the risk score gauge: circular SVG ring, center score, and level pill.
+ * Animates the ring from 0 to score over ~400ms. Hides gauge if score is missing.
+ * @param {number} [score] - 0–100; if undefined/null, gauge is hidden
+ * @param {string} [level] - "Low" | "Medium" | "High"
+ */
+function renderGauge(score, level) {
+  const section = gaugeSectionEl;
+  const ring = gaugeProgressEl;
+  const scoreEl = gaugeScoreEl;
+  const badgeEl = gaugeBadgeEl;
+
+  if (score == null || section == null || ring == null) {
+    if (section) section.classList.add("hidden");
+    return;
+  }
+
+  const value = Math.max(0, Math.min(100, Number(score)));
+  const levelNorm = (level && ["Low", "Medium", "High"].includes(level)) ? level : "Low";
+
+  // Circle r=42 in viewBox "0 0 100 100"
+  const r = 42;
+  const circumference = 2 * Math.PI * r;
+  const dashOffsetFull = circumference * (1 - value / 100);
+
+  // Level colors (CSS variables)
+  const colors = {
+    Low: "var(--gauge-low)",
+    Medium: "var(--gauge-medium)",
+    High: "var(--gauge-high)",
+  };
+  const color = colors[levelNorm];
+
+  section.classList.remove("hidden");
+  section.style.setProperty("--gauge-circumference", String(circumference));
+
+  // Ring and badge color
+  ring.style.stroke = color;
+  badgeEl.style.setProperty("--gauge-badge-bg", color);
+  badgeEl.textContent = levelNorm;
+
+  // Start from 0% for animation, then animate to value
+  ring.style.strokeDasharray = String(circumference);
+  ring.style.strokeDashoffset = String(circumference);
+  scoreEl.textContent = String(Math.round(value));
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ring.style.strokeDashoffset = String(dashOffsetFull);
+    });
+  });
 }
 
 function setStatus(text) {
