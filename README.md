@@ -57,6 +57,3 @@ MailShield/
 └── README.md       # This file
 ```
 
-## License
-
-Use and modify as needed for your project or hackathon.
