@@ -76,12 +76,12 @@ copyBtn.addEventListener("click", async () => {
 function render(data, result) {
   resultEl.classList.remove("hidden");
 
-  // Risk score gauge (above reasons list)
-  renderGauge(result.score, result.level);
+  // Risk score gauge (above reasons list); hide if no score data
+  renderGauge(result?.score, result?.level);
 
   // Reasons
   reasonsEl.innerHTML = "";
-  const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+  const reasons = Array.isArray(result?.reasons) ? result.reasons : [];
   for (const r of reasons) {
     const li = document.createElement("li");
     li.textContent = r;
@@ -90,7 +90,7 @@ function render(data, result) {
 
   // Links
   linksEl.innerHTML = "";
-  const sus = Array.isArray(result.suspiciousLinks) ? result.suspiciousLinks : [];
+  const sus = Array.isArray(result?.suspiciousLinks) ? result.suspiciousLinks : [];
   if (sus.length === 0) {
     const li = document.createElement("li");
     li.textContent = "None detected.";
@@ -109,13 +109,13 @@ function render(data, result) {
 function buildReport(data, result) {
   const lines = [];
   lines.push("=== Phishing Mail Detector Report ===");
-  lines.push(`Risk: ${result.level} (${result.score}/100)`);
+  lines.push(`Risk: ${result?.level ?? "—"} (${result?.score ?? 0}/100)`);
   lines.push("");
   lines.push("Indicators:");
-  for (const r of (result.reasons || [])) lines.push(`- ${r}`);
+  for (const r of (result?.reasons || [])) lines.push(`- ${r}`);
   lines.push("");
   lines.push("Suspicious URLs:");
-  const urls = (result.suspiciousLinks || []).map((x) => x.href);
+  const urls = (result?.suspiciousLinks || []).map((x) => x.href);
   if (urls.length === 0) lines.push("- None");
   else for (const u of urls) lines.push(`- ${u}`);
   lines.push("");
