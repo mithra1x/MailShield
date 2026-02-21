@@ -1,6 +1,6 @@
 // content.js
 // Extract opened email (subject/body/links), run detector, highlight suspicious links,
-// and respond to popup via chrome.runtime messaging.
+// and respond to peldeopup via chrome.runtime messaging.
 //Salam123
 
 const STYLE_ID = "pmd-style";
