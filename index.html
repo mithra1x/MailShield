@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MailShield MS — Defend Your Inbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pmd: {
+              bg: '#0b1220',
+              card: '#121a2b',
+              text: '#e9eefc',
+              muted: '#a9b4d0',
+              low: '#22c55e',
+              medium: '#f97316',
+              high: '#ef4444',
+            }
+          },
+          fontFamily: {
+            sans: ['Outfit', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --pmd-bg: #0b1220;
+      --pmd-card: #121a2b;
+      --pmd-text: #e9eefc;
+      --pmd-muted: #a9b4d0;
+      --pmd-low: #22c55e;
+      --pmd-medium: #f97316;
+      --pmd-high: #ef4444;
+      --line: rgba(255,255,255,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--pmd-bg); color: var(--pmd-text); }
+    .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    .animate-slide-up { animation: slideUp 0.6s ease-out forwards; }
+    .animate-slide-up-1 { animation: slideUp 0.6s ease-out 0.1s forwards; opacity: 0; }
+    .animate-slide-up-2 { animation: slideUp 0.6s ease-out 0.2s forwards; opacity: 0; }
+    .animate-slide-up-3 { animation: slideUp 0.6s ease-out 0.3s forwards; opacity: 0; }
+    .animate-glow { animation: glow 2.5s ease-in-out infinite; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.15); }
+      50% { box-shadow: 0 0 35px rgba(34, 197, 94, 0.25); }
+    }
+    .gauge-arc { transition: stroke-dasharray 0.8s ease-out; }
+    .card-border { border: 1px solid var(--line); }
+    .gradient-cta {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+      box-shadow: 0 4px 24px rgba(34, 197, 94, 0.35);
+    }
+    .gradient-cta:hover {
+      box-shadow: 0 6px 32px rgba(34, 197, 94, 0.45);
+      filter: brightness(1.05);
+    }
+    .section-mask {
+      mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+    }
+    .grid-pattern {
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .feature-card { opacity: 0; animation: slideUp 0.5s ease-out forwards; }
+    .feature-card:nth-child(1) { animation-delay: 0.1s; }
+    .feature-card:nth-child(2) { animation-delay: 0.2s; }
+    .feature-card:nth-child(3) { animation-delay: 0.3s; }
+    .feature-card:nth-child(4) { animation-delay: 0.4s; }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen">
+  <!-- Hero -->
+  <header class="relative overflow-hidden">
+    <div class="absolute inset-0 section-mask pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute top-20 left-1/4 w-72 h-72 bg-pmd-low/10 rounded-full blur-3xl" aria-hidden="true"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-pmd-high/5 rounded-full blur-3xl" aria-hidden="true"></div>
+    <nav class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl font-bold text-pmd-text">MS</span>
+          <span class="text-pmd-muted text-sm font-medium">MailShield</span>
+        </div>
+      </div>
+    </nav>
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-20 sm:pb-28 text-center">
+      <h1 class="animate-slide-up text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-pmd-text max-w-4xl mx-auto leading-tight">
+        Defend Your Inbox with <span class="text-pmd-low">AI-Driven Precision</span>
+      </h1>
+      <p class="animate-slide-up-1 mt-6 text-lg sm:text-xl text-pmd-muted max-w-2xl mx-auto leading-relaxed">
+        The MS - MailShield   that analyzes Gmail headers, body text, and hidden link targets in real-time.
+      </p>
+      <div class="animate-slide-up-2 mt-10">
+        <a href="#install" class="inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-lg font-semibold text-white gradient-cta animate-glow focus:outline-none focus:ring-2 focus:ring-pmd-low focus:ring-offset-2 focus:ring-offset-pmd-bg transition-all">
+          Download Extension
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Preview - Extension popup mockup -->
+  <section class="relative py-16 sm:py-24" aria-labelledby="preview-heading">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 id="preview-heading" class="text-2xl sm:text-3xl font-bold text-pmd-text text-center mb-4">
+        See it in action
+      </h2>
+      <p class="text-pmd-muted text-center max-w-xl mx-auto mb-12">
+        One click on Gmail — instant risk score and suspicious link breakdown.
+      </p>
+      <div class="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
+        <!-- Popup mockup -->
+        <div class="animate-slide-up flex-shrink-0 w-full max-w-[360px] rounded-2xl bg-pmd-card card-border overflow-hidden shadow-2xl shadow-black/30">
+          <div class="p-3 border-b border-white/10 bg-black/20">
+            <div class="font-semibold text-pmd-text text-sm">MS - MailShield</div>
+            <div class="text-pmd-muted text-xs mt-0.5">Gmail opened email scan</div>
+          </div>
+          <div class="p-3">
+            <button class="w-full py-2.5 rounded-lg bg-[#1b2a46] border border-white/12 text-pmd-text text-sm font-semibold">
+              Scan current email
+            </button>
+          </div>
+          <div class="p-3 pt-0 space-y-3">
+            <!-- Risk + Score row -->
+            <div class="flex items-center justify-between rounded-xl bg-pmd-bg/60 p-3 card-border">
+              <div>
+                <div class="text-pmd-muted text-xs uppercase tracking-wider">Risk</div>
+                <div class="text-pmd-medium font-bold text-lg">Medium</div>
+              </div>
+              <div class="text-right">
+                <div class="text-pmd-muted text-xs uppercase tracking-wider">Score</div>
+                <div class="text-2xl font-extrabold text-pmd-text">47</div>
+              </div>
+            </div>
+            <!-- Risk score gauge (47/100 = Medium) -->
+            <div class="flex justify-center py-2">
+              <svg class="w-36 h-20" viewBox="0 0 120 60" aria-hidden="true">
+                <path d="M 12 48 A 48 48 0 0 1 108 48" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="6" stroke-linecap="round" />
+                <path class="gauge-arc" d="M 12 48 A 48 48 0 0 1 108 48" fill="none" stroke="#f97316" stroke-width="6" stroke-linecap="round" stroke-dasharray="71 84" stroke-dashoffset="0" />
+              </svg>
+            </div>
+            <div class="text-pmd-muted text-xs">Why suspicious?</div>
+            <ul class="text-pmd-text text-xs space-y-1 list-disc list-inside">
+              <li>Urgency/pressure words detected</li>
+              <li>Shortened URL detected</li>
+              <li>Domain mismatch (text vs link)</li>
+            </ul>
+            <div class="text-pmd-muted text-xs pt-1">Suspicious URLs</div>
+            <ul class="font-mono text-xs text-pmd-text/90 space-y-1 break-all">
+              <li>https://bit.ly/3x...</li>
+              <li>http://192.168.1.1/...</li>
+            </ul>
+            <button class="w-full py-2 rounded-lg border border-white/12 text-pmd-text text-sm font-medium bg-transparent">
+              Copy report
+            </button>
+          </div>
+        </div>
+        <!-- Side note -->
+        <div class="max-w-md text-pmd-muted text-sm leading-relaxed">
+          <p class="mb-4">
+            The extension runs entirely in your browser. Open any email in Gmail, click <strong class="text-pmd-text">Scan current email</strong>, and get a 0–100 risk score with a clear <strong class="text-pmd-text">Low / Medium / High</strong> level and a list of suspicious URLs with reasons.
+          </p>
+          <p>
+            Risk is built from urgency phrases, credential/OTP-style language, attachment bait, and per-link checks: dangerous schemes, non-HTTPS, IP-based URLs, shorteners, <strong class="text-pmd-text">domain mismatch</strong> (visible text vs. real destination), and lookalike domains (e.g. paypa1.com).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Features -->
+  <section class="py-16 sm:py-24 bg-pmd-card/40 grid-pattern" aria-labelledby="features-heading">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 id="features-heading" class="text-2xl sm:text-3xl font-bold text-pmd-text text-center mb-12">
+        Key features
+      </h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <article class="feature-card rounded-2xl bg-pmd-card card-border p-6 hover:border-pmd-low/30 transition-colors">
+          <div class="w-10 h-10 rounded-lg bg-pmd-low/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-pmd-low" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h3 class="font-semibold text-pmd-text mb-2">Smart scanning</h3>
+          <p class="text-pmd-muted text-sm leading-relaxed">Automated detection of urgency and pressure tactics, credential/OTP requests, and attachment-bait phrases in subject and body.</p>
+        </article>
+        <article class="feature-card rounded-2xl bg-pmd-card card-border p-6 hover:border-pmd-medium/30 transition-colors">
+          <div class="w-10 h-10 rounded-lg bg-pmd-medium/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-pmd-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+          </div>
+          <h3 class="font-semibold text-pmd-text mb-2">Deep link analysis</h3>
+          <p class="text-pmd-muted text-sm leading-relaxed">Unmasks shortened URLs and identifies lookalike domains (e.g. paypa1.com). Flags IP-based links and domain mismatch between visible text and real destination.</p>
+        </article>
+        <article class="feature-card rounded-2xl bg-pmd-card card-border p-6 hover:border-pmd-high/30 transition-colors">
+          <div class="w-10 h-10 rounded-lg bg-pmd-high/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-pmd-high" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          </div>
+          <h3 class="font-semibold text-pmd-text mb-2">SOC-ready reporting</h3>
+          <p class="text-pmd-muted text-sm leading-relaxed">One-click &ldquo;Copy report&rdquo; with risk level, score, indicators, and suspicious URLs so security teams can paste into tickets or SIEM.</p>
+        </article>
+        <article class="feature-card rounded-2xl bg-pmd-card card-border p-6 hover:border-pmd-low/30 transition-colors">
+          <div class="w-10 h-10 rounded-lg bg-pmd-low/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-pmd-low" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+          </div>
+          <h3 class="font-semibold text-pmd-text mb-2">Privacy first</h3>
+          <p class="text-pmd-muted text-sm leading-relaxed">All analysis happens locally in your browser. No data is sent to external servers.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- How scoring works (accuracy from detector) -->
+  <section class="py-16 sm:py-24" aria-labelledby="scoring-heading">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 id="scoring-heading" class="text-2xl sm:text-3xl font-bold text-pmd-text text-center mb-4">
+        How the risk score works
+      </h2>
+      <p class="text-pmd-muted text-center mb-10 max-w-2xl mx-auto">
+        The 0–100 score is built from text and link rules. Higher score = higher risk. Levels: <span class="text-pmd-low font-medium">Low</span> (0–29), <span class="text-pmd-medium font-medium">Medium</span> (30–59), <span class="text-pmd-high font-medium">High</span> (60–100).
+      </p>
+      <div class="rounded-2xl bg-pmd-card card-border p-6 sm:p-8 font-mono text-sm">
+        <ul class="space-y-3 text-pmd-muted">
+          <li><span class="text-pmd-text">+10</span> Urgency/pressure </li>
+          <li><span class="text-pmd-text">+20</span> Credential/OTP/login request</li>
+          <li><span class="text-pmd-text">+10</span> Attachment bait phrases</li>
+          <li><span class="text-pmd-text">+25</span> Domain mismatch</li>
+          <li><span class="text-pmd-text">+25</span> IP-based URL host</li>
+          <li><span class="text-pmd-text">+15</span> URL shortener</li>
+          <li><span class="text-pmd-text">+15</span> Lookalike</li>
+          <li><span class="text-pmd-text">+30</span> Dangerous scheme</li>
+          <li><span class="text-pmd-text">+10</span> Non-HTTPS (http) link</li>
+          <li><span class="text-pmd-text">+5</span> Many external link domains</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Installation -->
+  <section id="install" class="py-16 sm:py-24 bg-pmd-card/40" aria-labelledby="install-heading">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 id="install-heading" class="text-2xl sm:text-3xl font-bold text-pmd-text text-center mb-12">
+        Installation (3 steps)
+      </h2>
+      <ol class="space-y-8">
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-10 h-10 rounded-full bg-pmd-low/20 text-pmd-low font-bold flex items-center justify-center">1</span>
+          <div>
+            <h3 class="font-semibold text-pmd-text mb-1">Download the extension</h3>
+            <p class="text-pmd-muted text-sm">Get the PMD package (ZIP) from the release or project repo and save it to your computer.</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-10 h-10 rounded-full bg-pmd-medium/20 text-pmd-medium font-bold flex items-center justify-center">2</span>
+          <div>
+            <h3 class="font-semibold text-pmd-text mb-1">Unzip</h3>
+            <p class="text-pmd-muted text-sm">Extract the ZIP to a folder (e.g. <code class="font-mono text-pmd-text bg-pmd-bg px-1.5 py-0.5 rounded">MailShield</code>).</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="flex-shrink-0 w-10 h-10 rounded-full bg-pmd-high/20 text-pmd-high font-bold flex items-center justify-center">3</span>
+          <div>
+            <h3 class="font-semibold text-pmd-text mb-1">Load unpacked in Chrome</h3>
+            <p class="text-pmd-muted text-sm">Open <code class="font-mono text-pmd-text bg-pmd-bg px-1.5 py-0.5 rounded">chrome://extensions</code>, enable &ldquo;Developer mode&rdquo;, click &ldquo;Load unpacked&rdquo;, and select the extracted folder.</p>
+          </div>
+        </li>
+      </ol>
+      <div class="mt-12 text-center">
+        <a href="#" class="inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-lg font-semibold text-white gradient-cta focus:outline-none focus:ring-2 focus:ring-pmd-low focus:ring-offset-2 focus:ring-offset-pmd-bg transition-all">
+          Download Extension
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-pmd-muted text-sm">
+        MS - MailShield ~ A hackathon MVP project. Not a substitute for organizational security policies or dedicated email security solutions.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
