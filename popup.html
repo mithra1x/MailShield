@@ -14,18 +14,22 @@
       </header>
 
       <button id="scanBtn" class="btn">Scan current email</button>
+      <p class="options-link"><a href="#" id="optionsLink">Options</a></p>
 
       <section id="status" class="status hidden"></section>
 
       <section id="result" class="card hidden">
-        <div class="row">
-          <div>
-            <div class="label">Risk</div>
-            <div id="riskLevel" class="risk">—</div>
-          </div>
-          <div class="scoreBox">
-            <div class="label">Score</div>
-            <div id="riskScore" class="score">—</div>
+        <!-- Risk Score Gauge: circular ring + center score + level pill -->
+        <div id="gaugeSection" class="gauge-section hidden">
+          <div class="gauge-wrap">
+            <div class="gauge-ring-wrap">
+              <svg class="gauge-svg" viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="gauge-bg" cx="50" cy="50" r="42" />
+                <circle id="gaugeProgress" class="gauge-progress" cx="50" cy="50" r="42" />
+              </svg>
+              <div id="gaugeScore" class="gauge-score">0</div>
+            </div>
+            <span id="gaugeBadge" class="gauge-badge">—</span>
           </div>
         </div>
 

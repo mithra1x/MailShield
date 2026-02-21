@@ -1,19 +1,12 @@
 {
-    "manifest_version": 3,
-    "name": "Phishing Mail Detector (MVP)",
-    "version": "1.0.0",
-    "description": "Scan opened Gmail email for phishing signals, highlight suspicious links, and generate SOC-style report.",
-    "permissions": ["activeTab", "scripting", "clipboardWrite"],
-    "host_permissions": ["https://mail.google.com/*"],
-    "action": {
-      "default_title": "Phishing Mail Detector",
-      "default_popup": "popup.html"
-    },
-    "content_scripts": [
-      {
-        "matches": ["https://mail.google.com/*"],
-        "js": ["detector.js", "content.js"],
-        "run_at": "document_idle"
-      }
-    ]
-  }
+  "manifest_version": 3,
+  "name": "Phishing Mail Detector (MVP)",
+  "version": "1.0.0",
+  "description": "Scan opened Gmail email for phishing signals, highlight suspicious links, and generate SOC-style report.",
+  "permissions": ["activeTab", "scripting", "clipboardWrite", "storage"],
+  "host_permissions": ["https://mail.google.com/*"],
+  "action": { "default_title": "Phishing Mail Detector", "default_popup": "popup.html" },
+  "options_ui": { "page": "options.html" },
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{ "matches": ["https://mail.google.com/*"], "js": ["detector.js", "content.js"], "run_at": "document_idle" }]
+}
