@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Phishing Mail Detector</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="title">Phishing Mail Detector</div>
+        <div class="subtitle">Gmail opened email scan</div>
+      </header>
+
+      <button id="scanBtn" class="btn">Scan current email</button>
+
+      <section id="status" class="status hidden"></section>
+
+      <section id="result" class="card hidden">
+        <div class="row">
+          <div>
+            <div class="label">Risk</div>
+            <div id="riskLevel" class="risk">—</div>
+          </div>
+          <div class="scoreBox">
+            <div class="label">Score</div>
+            <div id="riskScore" class="score">—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="label">Why suspicious?</div>
+        <ul id="reasons" class="list"></ul>
+
+        <div class="divider"></div>
+
+        <div class="label">Suspicious URLs</div>
+        <p class="hint">Actual link targets from the email (may differ from visible text).</p>
+        <ul id="links" class="list mono"></ul>
+
+        <div class="actions">
+          <button id="copyBtn" class="btn secondary" disabled>Copy report</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

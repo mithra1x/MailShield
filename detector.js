@@ -1,12 +1,10 @@
 // detector.js
-// Rule-based phishing detector for hackathon MVP.
+// Rule-based phishing detector for hackathon MVP (browser extension).
 // Input: { subject: string, bodyText: string, links: [{href, text}] }
 // Output: { score, level, reasons[], suspiciousLinks[] }
+// Exposes analyzeEmail on window for content script.
 
-import { fileURLToPath } from "url";
-import { resolve } from "path";
-
-export function analyzeEmail(input) {
+function analyzeEmail(input) {
     const subject = normalizeText(input?.subject || "");
     const body = normalizeText(input?.bodyText || "");
     const links = Array.isArray(input?.links) ? input.links : [];
@@ -49,10 +47,13 @@ export function analyzeEmail(input) {
   
       if (!href) continue;
   
+      const urlInfo = safeParseUrl(href);
+      // Skip links to trusted domains (and their subdomains) — e.g. LinkedIn, Google, Apple
+      if (urlInfo && isTrustedHost(urlInfo.host)) continue;
+  
       const linkFindings = [];
       let linkPoints = 0;
   
-      const urlInfo = safeParseUrl(href);
       if (urlInfo) {
         uniqueExternalDomains.add(urlInfo.host);
   
@@ -62,8 +63,9 @@ export function analyzeEmail(input) {
           linkFindings.push("dangerous_scheme");
         }
   
-        // Non-https (http)
-        if (urlInfo.protocol === "http:") {
+        // Non-https (http) — only when the raw href explicitly uses http: (not https:)
+        const rawHref = String(href).trim().toLowerCase();
+        if (rawHref.startsWith("http:") && !rawHref.startsWith("https:")) {
           linkPoints += 10;
           linkFindings.push("non_https_http");
         }
@@ -109,10 +111,10 @@ export function analyzeEmail(input) {
       }
     }
   
-    // Many external domains rule (global)
-    if (uniqueExternalDomains.size >= 3) {
-      score += 10;
-      reasons.push("Many external link domains detected (3+ unique domains)");
+    // Many external domains rule (global) — only untrusted; higher threshold to avoid newsletters
+    if (uniqueExternalDomains.size >= 5) {
+      score += 5;
+      reasons.push("Many external link domains detected (5+ unique domains)");
     }
   
     // Add some high-level reasons based on suspiciousLinks findings
@@ -140,6 +142,21 @@ export function analyzeEmail(input) {
   
   // ---------------- Helpers ----------------
   
+  const TRUSTED_BASE_DOMAINS = new Set([
+    "linkedin.com", "google.com", "googlemail.com", "microsoft.com", "apple.com",
+    "amazon.com", "yahoo.com", "outlook.com", "live.com", "facebook.com",
+    "twitter.com", "x.com", "github.com", "cloudflare.com", "gravatar.com",
+  ]);
+  function isTrustedHost(host) {
+    const h = normalizeHost(host);
+    if (!h) return false;
+    if (TRUSTED_BASE_DOMAINS.has(h)) return true;
+    for (const base of TRUSTED_BASE_DOMAINS) {
+      if (h === base || h.endsWith("." + base)) return true;
+    }
+    return false;
+  }
+
   function normalizeText(s) {
     return String(s)
       .toLowerCase()
@@ -291,29 +308,31 @@ export function analyzeEmail(input) {
   }
   
   // ---- Lookalike domain (lightweight, hackathon-friendly) ----
-  // Not perfect; gives "wow" factor without heavy algorithms.
+  // Allow subdomains of known brands (e.g. apps.microsoft.com, play.google.com).
   function isLookalike(host) {
     if (!host) return false;
-  
-    // obvious digit substitutions often used in lookalikes
-    if (/[0]/.test(host)) return true;
-  
-    // suspicious mix of l/I in brand-ish strings is hard; do a light check:
-    // if domain contains "paypa" but isn't paypal.com, flag
+
     const brands = [
-      { key: "paypal", legit: ["paypal.com"] },
-      { key: "microsoft", legit: ["microsoft.com"] },
-      { key: "google", legit: ["google.com"] },
-      { key: "apple", legit: ["apple.com"] },
+      { key: "paypal", legit: "paypal.com" },
+      { key: "microsoft", legit: "microsoft.com" },
+      { key: "google", legit: "google.com" },
+      { key: "apple", legit: "apple.com" },
     ];
-  
     for (const b of brands) {
-      if (host.includes(b.key.slice(0, 4)) && !b.legit.includes(host)) {
-        // e.g. "paypaI.com" often still includes "paypa"
+      const base = b.legit;
+      if (host === base || host.endsWith("." + base)) return false;
+    }
+
+    // Obvious digit substitutions often used in lookalikes (e.g. paypa1.com)
+    if (/[0]/.test(host)) return true;
+
+    // If domain looks like a brand substring but isn't the real brand (or subdomain)
+    for (const b of brands) {
+      if (host.includes(b.key.slice(0, 4)) && host !== b.legit && !host.endsWith("." + b.legit)) {
         return true;
       }
     }
-  
+
     return false;
   }
   
@@ -338,23 +357,10 @@ export function analyzeEmail(input) {
     if (flags.has("lookalike_domain"))
       out.push("Possible lookalike/typosquatted domain detected");
   
-    return out;
+  return out;
   }
-  
-  // ---------------- Quick self-test when run directly ----------------
-  const __filename = fileURLToPath(import.meta.url);
-  const isRunDirectly =
-    typeof process !== "undefined" &&
-    process.argv[1] &&
-    resolve(process.argv[1]) === __filename;
-  if (isRunDirectly) {
-    const sample = analyzeEmail({
-      subject: "URGENT: Account Suspended",
-      bodyText: "Verify now. Enter your password and OTP within 24 hours.",
-      links: [
-        { href: "http://bit.ly/abcd", text: "paypal.com" },
-        { href: "https://paypaI.com/login", text: "paypal.com" },
-      ],
-    });
-    console.log("Phishing detector result:", JSON.stringify(sample, null, 2));
+
+  // Expose for content script (browser extension)
+  if (typeof window !== "undefined") {
+    window.analyzeEmail = analyzeEmail;
   }
