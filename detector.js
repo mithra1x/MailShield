@@ -8,33 +8,49 @@ function analyzeEmail(input) {
     const subject = normalizeText(input?.subject || "");
     const body = normalizeText(input?.bodyText || "");
     const links = Array.isArray(input?.links) ? input.links : [];
-  
+    const from = String(input?.from || "").trim();
+    const replyTo = String(input?.replyTo || "").trim();
+
     const fullText = `${subject} ${body}`.trim();
-  
     const reasons = [];
     let score = 0;
-  
+
+    // Merge built-in trusted domains with user-added (from options)
+    const trustedDomains = new Set(TRUSTED_BASE_DOMAINS);
+    const userList = input?.userTrustedDomains;
+    if (Array.isArray(userList)) {
+      for (const d of userList) {
+        const t = normalizeHost(String(d).trim());
+        if (t) trustedDomains.add(t);
+      }
+    }
+    function isTrustedHostForRun(host) {
+      const h = normalizeHost(host);
+      if (!h) return false;
+      if (trustedDomains.has(h)) return true;
+      for (const base of trustedDomains) {
+        if (h === base || h.endsWith("." + base)) return true;
+      }
+      return false;
+    }
+
+    // ---- Sender-based rules (From / Reply-To) ----
+    const fromDomain = extractEmailDomain(from);
+    const replyToDomain = extractEmailDomain(replyTo);
+    if (fromDomain && replyToDomain && fromDomain !== replyToDomain) {
+      score += 20;
+      reasons.push("From and Reply-To domains differ (possible impersonation)");
+    }
+    const isDisposableSender = fromDomain && isDisposableEmailDomain(fromDomain);
+    if (isDisposableSender && (containsUrgency(fullText) || containsCredentialRequest(fullText))) {
+      score += 15;
+      reasons.push("Disposable/temp sender combined with urgency or credential request");
+    }
+
     // ---- Text-based rules (subject+body) ----
-    scoreAdd(
-      reasons,
-      containsUrgency(fullText),
-      10,
-      "Urgency/pressure words detected"
-    );
-  
-    scoreAdd(
-      reasons,
-      containsCredentialRequest(fullText),
-      20,
-      "Credential/OTP/login request phrases detected"
-    );
-  
-    scoreAdd(
-      reasons,
-      containsAttachmentBait(fullText),
-      10,
-      "Attachment bait phrases detected"
-    );
+    score += scoreAdd(reasons, containsUrgency(fullText), 10, "Urgency/pressure words detected");
+    score += scoreAdd(reasons, containsCredentialRequest(fullText), 20, "Credential/OTP/login request phrases detected");
+    score += scoreAdd(reasons, containsAttachmentBait(fullText), 10, "Attachment bait phrases detected");
   
     // ---- Link-based rules (per link) ----
     const suspiciousLinks = [];
@@ -48,8 +64,8 @@ function analyzeEmail(input) {
       if (!href) continue;
   
       const urlInfo = safeParseUrl(href);
-      // Skip links to trusted domains (and their subdomains) — e.g. LinkedIn, Google, Apple
-      if (urlInfo && isTrustedHost(urlInfo.host)) continue;
+      // Skip links to trusted domains (and their subdomains) — built-in + user list
+      if (urlInfo && isTrustedHostForRun(urlInfo.host)) continue;
   
       const linkFindings = [];
       let linkPoints = 0;
@@ -154,6 +170,22 @@ function analyzeEmail(input) {
     for (const base of TRUSTED_BASE_DOMAINS) {
       if (h === base || h.endsWith("." + base)) return true;
     }
+    return false;
+  }
+  function extractEmailDomain(headerValue) {
+    const m = String(headerValue).match(/@([^\s>]+)/);
+    return m ? normalizeHost(m[1]) : null;
+  }
+  function isDisposableEmailDomain(domain) {
+    const disposable = new Set([
+      "tempmail.com", "mailinator.com", "guerrillamail.com", "10minutemail.com",
+      "throwaway.email", "temp-mail.org", "fakeinbox.com", "trashmail.com",
+      "yopmail.com", "getnada.com", "mailnesia.com", "sharklasers.com",
+    ]);
+    if (!domain) return false;
+    const d = normalizeHost(domain);
+    if (disposable.has(d)) return true;
+    if (d.endsWith(".mailinator.com") || d.endsWith(".tempmail.com")) return true;
     return false;
   }
 

@@ -8,8 +8,16 @@ const riskScoreEl = document.getElementById("riskScore");
 const reasonsEl = document.getElementById("reasons");
 const linksEl = document.getElementById("links");
 const copyBtn = document.getElementById("copyBtn");
+const optionsLink = document.getElementById("optionsLink");
 
 let lastScan = null;
+
+if (optionsLink) {
+  optionsLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
+  });
+}
 
 scanBtn.addEventListener("click", async () => {
   setStatus("Scanning current email…");
@@ -111,6 +119,9 @@ function buildReport(data, result) {
   lines.push("");
   lines.push("Context:");
   lines.push(`Subject: ${data.subject || ""}`);
+  if (data.from) lines.push(`From: ${data.from}`);
+  if (data.replyTo) lines.push(`Reply-To: ${data.replyTo}`);
+  if (data.date) lines.push(`Date: ${data.date}`);
   return lines.join("\n");
 }
 

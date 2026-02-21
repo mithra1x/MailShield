@@ -7,31 +7,47 @@ const MARK_ATTR = "data-pmd-marked";
 const TOOLTIP_CLASS = "pmd-tooltip";
 
 injectStylesOnce();
+setupAutoScan();
+
+function setupAutoScan() {
+  let timeoutId = null;
+  function runAutoScan() {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(async () => {
+      const { autoScan } = await chrome.storage.sync.get("autoScan");
+      if (!autoScan) return;
+      try {
+        const data = await extractEmailDataWithOptions();
+        if (!data.subject && !data.bodyText) return;
+        const result = window.analyzeEmail ? window.analyzeEmail(data) : null;
+        if (result) {
+          chrome.runtime.sendMessage({ type: "PMD_BADGE_UPDATE", result });
+        }
+      } catch (_) { /* ignore */ }
+      timeoutId = null;
+    }, 1500);
+  }
+  window.addEventListener("hashchange", runAutoScan);
+  if (document.readyState === "complete") runAutoScan();
+  else window.addEventListener("load", runAutoScan);
+}
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || msg.type !== "PMD_SCAN_EMAIL") return;
 
-  try {
-    const data = extractEmailData();
-    const result = window.analyzeEmail ? window.analyzeEmail(data) : fallbackError();
+  (async () => {
+    try {
+      const data = await extractEmailDataWithOptions();
+      const result = window.analyzeEmail ? window.analyzeEmail(data) : fallbackError();
 
-    // Highlight after scoring
-    clearHighlights();
-    highlightSuspiciousLinks(result.suspiciousLinks || []);
+      clearHighlights();
+      highlightSuspiciousLinks(result.suspiciousLinks || []);
 
-    sendResponse({
-      ok: true,
-      data,
-      result
-    });
-  } catch (e) {
-    sendResponse({
-      ok: false,
-      error: String(e?.message || e)
-    });
-  }
-
-  // async response not needed, but keep true for safety
+      sendResponse({ ok: true, data, result });
+    } catch (e) {
+      sendResponse({ ok: false, error: String(e?.message || e) });
+    }
+  })();
   return true;
 });
 
@@ -45,20 +61,15 @@ function fallbackError() {
 }
 
 function extractEmailData() {
-  // Gmail DOM changes often; use best-effort selectors.
-  // Subject commonly in: h2.hP
   const subjectEl = document.querySelector("h2.hP") || document.querySelector("h2");
   const subject = subjectEl?.innerText?.trim() || "";
 
-  // Email body often inside div.a3s (can be multiple)
   const bodyEls = Array.from(document.querySelectorAll("div.a3s"));
   const bodyText = bodyEls.map((el) => el.innerText).join("\n").trim();
 
-  // Links inside body containers
   const linkNodes = bodyEls.length
     ? bodyEls.flatMap((root) => Array.from(root.querySelectorAll("a[href]")))
     : Array.from(document.querySelectorAll("a[href]"));
-
   const links = linkNodes
     .map((a) => ({
       href: a.getAttribute("href") || a.href || "",
@@ -66,7 +77,41 @@ function extractEmailData() {
     }))
     .filter((l) => l.href);
 
-  return { subject, bodyText, links };
+  let from = "";
+  let replyTo = "";
+  let date = "";
+  const fromSpan = document.querySelector('span[email]');
+  if (fromSpan && fromSpan.getAttribute("email")) from = fromSpan.getAttribute("email").trim();
+  if (!from) {
+    const fromLink = document.querySelector('div.gs a[href^="mailto:"]') ||
+      document.querySelector('span.gD a[href^="mailto:"]') ||
+      document.querySelector('[role="main"] a[href^="mailto:"]');
+    if (fromLink && fromLink.href) from = fromLink.href.replace(/^mailto:/i, "").trim();
+  }
+  const header = document.querySelector(".h7") || document.querySelector('[role="main"]');
+  if (header) {
+    const text = header.innerText || "";
+    const replyMatch = text.match(/reply-to\s*[:=]\s*(\S+@\S+)/i);
+    if (replyMatch) replyTo = replyMatch[1].trim();
+    const dateMatch = text.match(/(?:date|sent)\s*[:=]\s*([^\n]+)/i) || text.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\w{3},?\s+\w{3}\s+\d{1,2},?\s+\d{4})/);
+    if (dateMatch) date = dateMatch[1].trim();
+  }
+  if (!date) {
+    const dateEl = document.querySelector('span.g3') || document.querySelector('[data-date]');
+    if (dateEl) date = (dateEl.getAttribute("data-date") || dateEl.innerText || "").trim();
+  }
+
+  return { subject, bodyText, links, from, replyTo, date };
+}
+
+async function extractEmailDataWithOptions() {
+  const data = extractEmailData();
+  const { userTrustedDomains } = await chrome.storage.sync.get("userTrustedDomains");
+  const list = typeof userTrustedDomains === "string"
+    ? userTrustedDomains.split(/\n/).map((s) => s.trim()).filter(Boolean)
+    : (Array.isArray(userTrustedDomains) ? userTrustedDomains : []);
+  data.userTrustedDomains = list;
+  return data;
 }
 
 function highlightSuspiciousLinks(suspiciousLinks) {
