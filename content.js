@@ -60,6 +60,17 @@ function fallbackError() {
   };
 }
 
+function normalizeSenderEmail(raw) {
+  if (!raw || typeof raw !== "string") return "";
+  let s = raw.trim();
+  try { s = decodeURIComponent(s); } catch (_) { /* keep s */ }
+  const inBrackets = s.match(/<([^>]+)>/);
+  if (inBrackets) return inBrackets[1].trim().toLowerCase();
+  const emailOnly = s.match(/\S+@[\w.-]+\.\w+/);
+  if (emailOnly) return emailOnly[0].trim().toLowerCase();
+  return s.toLowerCase();
+}
+
 function extractEmailData() {
   const subjectEl = document.querySelector("h2.hP") || document.querySelector("h2");
   const subject = subjectEl?.innerText?.trim() || "";
@@ -88,9 +99,14 @@ function extractEmailData() {
       document.querySelector('[role="main"] a[href^="mailto:"]');
     if (fromLink && fromLink.href) from = fromLink.href.replace(/^mailto:/i, "").trim();
   }
+  from = normalizeSenderEmail(from);
   const header = document.querySelector(".h7") || document.querySelector('[role="main"]');
   if (header) {
     const text = header.innerText || "";
+    if (!from || !from.includes("@")) {
+      const emailInHeader = text.match(/\S+@[\w.-]+\.\w+/);
+      if (emailInHeader) from = emailInHeader[0].trim().toLowerCase();
+    }
     const replyMatch = text.match(/reply-to\s*[:=]\s*(\S+@\S+)/i);
     if (replyMatch) replyTo = replyMatch[1].trim();
     const dateMatch = text.match(/(?:date|sent)\s*[:=]\s*([^\n]+)/i) || text.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\w{3},?\s+\w{3}\s+\d{1,2},?\s+\d{4})/);
@@ -106,11 +122,9 @@ function extractEmailData() {
 
 async function extractEmailDataWithOptions() {
   const data = extractEmailData();
-  const { userTrustedDomains } = await chrome.storage.sync.get("userTrustedDomains");
-  const list = typeof userTrustedDomains === "string"
-    ? userTrustedDomains.split(/\n/).map((s) => s.trim()).filter(Boolean)
-    : (Array.isArray(userTrustedDomains) ? userTrustedDomains : []);
-  data.userTrustedDomains = list;
+  const { userTrustedDomains, userTrustedSenders } = await chrome.storage.sync.get(["userTrustedDomains", "userTrustedSenders"]);
+  data.userTrustedDomains = Array.isArray(userTrustedDomains) ? userTrustedDomains : (typeof userTrustedDomains === "string" ? userTrustedDomains.split(/\n/).map((s) => s.trim()).filter(Boolean) : []);
+  data.userTrustedSenders = Array.isArray(userTrustedSenders) ? userTrustedSenders : (typeof userTrustedSenders === "string" ? userTrustedSenders.split(/\n/).map((s) => s.trim().toLowerCase()).filter(Boolean) : []);
   return data;
 }
 

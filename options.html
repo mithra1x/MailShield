@@ -28,8 +28,14 @@
       </div>
 
       <div class="option-row">
-        <div class="label">Extra trusted domains (one per line)</div>
-        <p class="hint">Add domains you trust so their links are not marked suspicious (e.g. your company).</p>
+        <div class="label">Trusted sender addresses (one per line)</div>
+        <p class="hint">Emails from these addresses get a lower risk score. Use full email (e.g. you@gmail.com).</p>
+        <textarea id="userTrustedSenders" placeholder="you@gmail.com&#10;teammate@company.com"></textarea>
+      </div>
+
+      <div class="option-row">
+        <div class="label">Trusted link domains (one per line)</div>
+        <p class="hint">Links in the email that point to these domains are not marked suspicious (e.g. company.com). Not for email addresses.</p>
         <textarea id="userTrustedDomains" placeholder="example.com&#10;mycompany.org"></textarea>
       </div>
 
