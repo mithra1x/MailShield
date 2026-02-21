@@ -47,13 +47,17 @@ A Chrome extension that scans the currently opened Gmail email for phishing sign
 
 ```
 MailShield/
-├── manifest.json   # Extension manifest (Manifest V3)
-├── popup.html      # Popup UI
-├── popup.css       # Popup styles
-├── popup.js        # Popup logic & report build
-├── content.js      # Gmail DOM extraction, highlighting, messaging
-├── detector.js     # Rule-based phishing analysis (analyzeEmail)
-├── package.json    # Project metadata (type: module)
-└── README.md       # This file
+├── manifest.json    # Extension manifest (Manifest V3)
+├── index.html       # Landing page (Product website)
+├── popup.html       # Popup UI
+├── popup.css        # Popup styles
+├── popup.js         # Popup logic & report build
+├── options.html     # Extension options page UI
+├── options.js       # Extension options logic
+├── content.js       # Gmail DOM extraction, highlighting, messaging
+├── background.js    # Service worker for background tasks
+├── detector.js      # Rule-based phishing analysis (analyzeEmail)
+├── package.json     # Project metadata (type: module)
+└── README.md        # This file
 ```
 
